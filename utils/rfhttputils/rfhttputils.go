@@ -3,7 +3,9 @@ package rfhttputils
 import (
 	"encoding/json"
 	"net/http"
+	"rfgocore/utils/utilsstring"
 	"rfgorest/beans/rfhttpresponserequest"
+	"rfgorest/constants/rfhttpresponsecodeerrors"
 	"rfgorest/constants/rfhttpresponsestatusconstants"
 )
 
@@ -12,13 +14,17 @@ func EncodeJsonDataResponseWriter(responseWrite http.ResponseWriter, responseReq
 	jsonResult, err := json.Marshal(responseRequest)
 
 	if err != nil {
-		http.Error(responseWrite, err.Error(), http.StatusInternalServerError)
-		return
+
+		http.Error(responseWrite, utilsstring.IntToString(int(rfhttpresponsecodeerrors.CodeErrorMarshalResponseWriter)), http.StatusInternalServerError)
+
+	} else {
+
+		responseWrite.WriteHeader(int(responseRequest.Status))
+		responseWrite.Header().Set("Content-Type", "application/json")
+		responseWrite.Write(jsonResult)
+
 	}
 
-	responseWrite.WriteHeader(int(responseRequest.Status))
-	responseWrite.Header().Set("Content-Type", "application/json")
-	responseWrite.Write(jsonResult)
 }
 
 // StatusOkInResponseRequest : Method to ser status ok in response
