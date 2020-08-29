@@ -2,3 +2,8 @@ package rfhttpresponsecodeerrors
 
 // CodeErrorResponseType : code error for response
 type CodeErrorResponseType int
+
+const (
+	// CodeErrorMethodRequest : error method request
+	CodeErrorMethodRequest CodeErrorResponseType = 0xE000000001
+)

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"rfgocore/utils/utilsstring"
 	"rfgorest/constants/rfhttpparamsconstants"
+	"rfgorest/constants/rfhttpresponsecodeerrors"
 )
 
 // RFHttp : struct for store data for http
@@ -35,9 +36,44 @@ func (rfHTTP *RFHttp) AppName() string {
 	return rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamAppName].(string)
 }
 
-// HandleRoute : method for handler route function
-func (rfHTTP *RFHttp) HandleRoute(route string, handler http.HandlerFunc) {
-	http.HandleFunc(route, handler)
+// HandleGetRoute : method for handler get route
+func (rfHTTP *RFHttp) HandleGetRoute(route string, handler http.HandlerFunc) {
+	http.HandleFunc(route, func(res http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+
+		case http.MethodOptions:
+			break
+
+		case http.MethodGet:
+			// Serve the resource.
+			handler(res, req)
+			break
+
+		default:
+			// Give an error message.
+			http.Error(res, utilsstring.IntToString(int(rfhttpresponsecodeerrors.CodeErrorMethodRequest)), http.StatusInternalServerError)
+		}
+	})
+}
+
+// HandlePostRoute : method for handler get route
+func (rfHTTP *RFHttp) HandlePostRoute(route string, handler http.HandlerFunc) {
+	http.HandleFunc(route, func(res http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+
+		case http.MethodOptions:
+			break
+
+		case http.MethodPost:
+			// Serve the resource.
+			handler(res, req)
+			break
+
+		default:
+			// Give an error message.
+			http.Error(res, utilsstring.IntToString(int(rfhttpresponsecodeerrors.CodeErrorMethodRequest)), http.StatusInternalServerError)
+		}
+	})
 }
 
 // Listen : method for start server on host and port
