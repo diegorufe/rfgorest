@@ -7,10 +7,10 @@ import (
 
 // RestRequestResponse : struct for store response data
 type RestRequestResponse struct {
-	Data            interface{}
-	Status          rfhttpresponsestatusconstants.HttpStatusType
-	MessageResponse string
-	CodeError       rfhttpresponsecodeerrors.CodeErrorResponseType
+	Data            interface{}                                    `json:"data"`
+	Status          rfhttpresponsestatusconstants.HttpStatusType   `json:"status"`
+	MessageResponse string                                         `json:"messageResponse"`
+	CodeError       rfhttpresponsecodeerrors.CodeErrorResponseType `json:"codeError"`
 }
 
 // NewRestRequestResponse : function to create RestRequestResponse
