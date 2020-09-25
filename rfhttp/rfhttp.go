@@ -3,8 +3,7 @@ package rfhttp
 import (
 	"net/http"
 	"rfgocore/utils/utilsstring"
-	"rfgorest/constants/rfhttpparamsconstants"
-	"rfgorest/constants/rfhttpresponsecodeerrors"
+	"rfgorest/constants"
 )
 
 // RFHttp : struct for store data for http
@@ -33,7 +32,7 @@ func NewRFHttp(mapProperties map[string]interface{}) *RFHttp {
 
 // AppName : Method for get appName
 func (rfHTTP *RFHttp) AppName() string {
-	return rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamAppName].(string)
+	return rfHTTP.MapProperties[constants.ParamAppName].(string)
 }
 
 // HandleGetRoute : method for handler get route
@@ -51,7 +50,7 @@ func (rfHTTP *RFHttp) HandleGetRoute(route string, handler http.HandlerFunc) {
 
 		default:
 			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(rfhttpresponsecodeerrors.CodeErrorMethodRequest)), http.StatusInternalServerError)
+			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
 		}
 	})
 }
@@ -71,7 +70,7 @@ func (rfHTTP *RFHttp) HandlePostRoute(route string, handler http.HandlerFunc) {
 
 		default:
 			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(rfhttpresponsecodeerrors.CodeErrorMethodRequest)), http.StatusInternalServerError)
+			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
 		}
 	})
 }
@@ -79,9 +78,9 @@ func (rfHTTP *RFHttp) HandlePostRoute(route string, handler http.HandlerFunc) {
 // Listen : method for start server on host and port
 func (rfHTTP *RFHttp) Listen() {
 
-	var hostAndPort string = rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamHost].(string) +
+	var hostAndPort string = rfHTTP.MapProperties[constants.ParamHost].(string) +
 		":" +
-		utilsstring.IntToString(rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamPort].(int))
+		utilsstring.IntToString(rfHTTP.MapProperties[constants.ParamPort].(int))
 
 	http.ListenAndServe(hostAndPort, nil)
 }
@@ -90,7 +89,7 @@ func (rfHTTP *RFHttp) Listen() {
 func initDefaultRFHttp(rfHTTP *RFHttp) {
 	// Init map properties
 	rfHTTP.MapProperties = make(map[string]interface{})
-	rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamAppName] = "RFHttp"
-	rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamHost] = "localhost"
-	rfHTTP.MapProperties[rfhttpparamsconstants.RFHttpParamPort] = 7000
+	rfHTTP.MapProperties[constants.ParamAppName] = "RFHttp"
+	rfHTTP.MapProperties[constants.ParamHost] = "localhost"
+	rfHTTP.MapProperties[constants.ParamPort] = 7000
 }

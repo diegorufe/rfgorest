@@ -2,7 +2,7 @@ package rfhttp
 
 import (
 	"reflect"
-	"rfgorest/constants/rfhttpparamsconstants"
+	"rfgorest/constants"
 	"rfgorest/rfhttp"
 	"testing"
 )
@@ -10,7 +10,7 @@ import (
 func TestRFHttpContextName(t *testing.T) {
 
 	var mapProperties map[string]interface{} = make(map[string]interface{})
-	mapProperties[rfhttpparamsconstants.RFHttpParamAppName] = "TEST"
+	mapProperties[constants.ParamAppName] = "TEST"
 	var data *rfhttp.RFHttp = rfhttp.NewRFHttp(mapProperties)
 	var desireResult string = "TEST"
 

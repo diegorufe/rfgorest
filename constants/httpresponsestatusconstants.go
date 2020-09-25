@@ -1,4 +1,4 @@
-package rfhttpresponsestatusconstants
+package constants
 
 import "net/http"
 

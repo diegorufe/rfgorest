@@ -1,4 +1,4 @@
-package rfhttpresponsecodeerrors
+package constants
 
 // CodeErrorResponseType : code error for response
 type CodeErrorResponseType int
