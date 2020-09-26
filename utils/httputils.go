@@ -6,6 +6,7 @@ import (
 	"rfgocore/utils/utilsstring"
 	"rfgorest/beans"
 	"rfgorest/constants"
+	"rfgorest/logger"
 )
 
 // EncodeJsonDataResponseWriter : pass json data to response writer
@@ -17,7 +18,9 @@ func EncodeJsonDataResponseWriter(responseWrite http.ResponseWriter, responseReq
 		http.Error(responseWrite, utilsstring.IntToString(int(constants.CodeErrorMarshalResponseWriter)), http.StatusInternalServerError)
 
 	} else {
-
+		if logger.IsDebugEnabled() {
+			logger.Debug("$$EncodeJsonDataResponseWriter response: " + string(jsonResult))
+		}
 		responseWrite.WriteHeader(int(responseRequest.Status))
 		responseWrite.Header().Set("Content-Type", "application/json")
 		responseWrite.Write(jsonResult)
