@@ -1,4 +1,4 @@
-package rfhttputils
+package utils
 
 import (
 	"encoding/json"
