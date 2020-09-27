@@ -3,6 +3,7 @@ package rfhttp
 import (
 	"net/http"
 	"rfgocore/utils/utilsstring"
+	rfgodataconst "rfgodata/constants"
 	"rfgorest/constants"
 )
 
@@ -10,12 +11,19 @@ import (
 type RFHttp struct {
 	// Map properties store in http
 	MapProperties map[string]interface{}
+	// Transaction type for database
+	TransactionTypeContext rfgodataconst.TransactionType
+	// DbConnection
+	DbConnection interface{}
 }
 
 // NewRFHttp : method for create new RFHttp
 // mapProperties for store in http method
 func NewRFHttp(mapProperties map[string]interface{}) *RFHttp {
 	var rfHTTP *RFHttp = new(RFHttp)
+
+	// For default transaction type is Gorm
+	rfHTTP.TransactionTypeContext = rfgodataconst.TransactionGorm
 
 	// Init default data
 	initDefaultRFHttp(rfHTTP)
@@ -35,44 +43,18 @@ func (rfHTTP *RFHttp) AppName() string {
 	return rfHTTP.MapProperties[constants.ParamAppName].(string)
 }
 
-// HandleGetRoute : method for handler get route
-func (rfHTTP *RFHttp) HandleGetRoute(route string, handler http.HandlerFunc) {
-	http.HandleFunc(route, func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodGet:
-			// Serve the resource.
-			handler(res, req)
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
-	})
+// AddService : method for add service by key
+func (rfHTTP *RFHttp) AddService(keyService string, service interface{}) {
+	if service != nil {
+		var mapServices map[string]interface{} = rfHTTP.MapProperties[constants.ParamMapServices].(map[string]interface{})
+		mapServices[keyService] = service
+	}
 }
 
-// HandlePostRoute : method for handler get route
-func (rfHTTP *RFHttp) HandlePostRoute(route string, handler http.HandlerFunc) {
-	http.HandleFunc(route, func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodPost:
-			// Serve the resource.
-			handler(res, req)
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
-	})
+// GetService : method for get service by key
+func (rfHTTP *RFHttp) GetService(keyService string) interface{} {
+	var mapServices map[string]interface{} = rfHTTP.MapProperties[constants.ParamMapServices].(map[string]interface{})
+	return mapServices[keyService]
 }
 
 // Listen : method for start server on host and port
@@ -92,4 +74,5 @@ func initDefaultRFHttp(rfHTTP *RFHttp) {
 	rfHTTP.MapProperties[constants.ParamAppName] = "RFHttp"
 	rfHTTP.MapProperties[constants.ParamHost] = "localhost"
 	rfHTTP.MapProperties[constants.ParamPort] = 7000
+	rfHTTP.MapProperties[constants.ParamMapServices] = make(map[string]interface{})
 }

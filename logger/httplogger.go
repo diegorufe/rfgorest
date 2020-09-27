@@ -2,7 +2,7 @@ package logger
 
 import "log"
 
-// Default log level is debug
+// Default log level is debug 1000
 var logLevel uint8 = 0x08
 
 // Debug : method for print Debug logger

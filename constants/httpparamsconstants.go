@@ -9,4 +9,7 @@ const (
 
 	// ParamPort : port to listen server
 	ParamPort string = "ParamPort"
+
+	// ParamMapServices : for store services
+	ParamMapServices string = "ParamMapServices"
 )
