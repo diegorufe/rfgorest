@@ -16,3 +16,20 @@ func Debug(data interface{}) {
 func IsDebugEnabled() bool {
 	return (logLevel & 0x08) > 0
 }
+
+// Error : method for print error logger
+func Error(data interface{}) {
+	if IsErrorEnabled() {
+		log.Println(data)
+	}
+}
+
+// IsErrorEnabled : method for check error enabled
+func IsErrorEnabled() bool {
+	return (logLevel & 0x01) > 0
+}
+
+// Fatal : method for print fatal logger
+func Fatal(data interface{}) {
+	log.Fatal(data)
+}

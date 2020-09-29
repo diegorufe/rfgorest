@@ -6,6 +6,8 @@ import (
 	"rfgodata/beans/query"
 	rfgodataconst "rfgodata/constants"
 	"rfgodata/service"
+	"rfgodata/transactions"
+	transactiongorm "rfgodata/transactions/gorm"
 	"rfgorest/beans"
 	"rfgorest/constants"
 	"rfgorest/rfhttp"
@@ -98,8 +100,10 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 func StartTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}, req *http.Request) {
 	// Transaction type gorm
 	if rfHTTP.TransactionTypeContext == rfgodataconst.TransactionGorm {
-		var db gorm.DB = rfHTTP.DbConnection.(gorm.DB)
-		var transaction = db.WithContext(req.Context())
-		(*mapParamsService)[rfgodataconst.ParamTransaction] = transaction
+		var db *gorm.DB = rfHTTP.DbConnection.(*gorm.DB)
+		var transaction *gorm.DB = db.WithContext(req.Context())
+		var transactionGorm interface{} = transactiongorm.TransactionGorm{Transaction: transaction}
+		var iTransaction transactions.ITransaction = transactionGorm.(transactions.ITransaction)
+		(*mapParamsService)[rfgodataconst.ParamTransaction] = iTransaction
 	}
 }
