@@ -74,7 +74,7 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 			StartTransactionContext(rfHTTP, &mapParamsService, req)
 
 			// Call list service
-			data, err := service.List(nil, nil, nil, nil, nil, query.Limit{0, 1}, &mapParamsService)
+			data, err := (service).List(nil, nil, nil, nil, nil, query.Limit{0, 1}, &mapParamsService)
 
 			if err != nil {
 				// Send error
