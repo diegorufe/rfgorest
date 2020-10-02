@@ -75,22 +75,21 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 			StartTransactionContext(rfHTTP, &mapParamsService, req)
 
 			// Call list service
-			data, err := (service).List(nil, nil, nil, nil, nil, query.Limit{0, 100}, &mapParamsService)
+			var err error
+			var data interface{}
 
-			if err != nil {
-				err = FinishTransactionContext(rfHTTP, &mapParamsService)
-			}
+			// Catch panic errors
+			defer func() {
+				if err := recover(); err != nil {
+					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
+				}
+			}()
 
-			if err != nil {
-				// Send error
-				http.Error(res, err.Error(), http.StatusInternalServerError)
-			} else {
-				// send response
-				var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
-				response.Data = data
-				utils.StatusOkInResponseRequest(response)
-				utils.EncodeJsonDataResponseWriter(res, *response)
-			}
+			// Call list service
+			data, err = (service).List(nil, nil, nil, nil, nil, query.Limit{0, 1}, &mapParamsService)
+
+			// If has error finish transaction context
+			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
 
 			break
 
@@ -104,6 +103,7 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 // HandleCrudCountRoute : Method for handle count route
 func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	http.HandleFunc(pathRoute+"/count", func(res http.ResponseWriter, req *http.Request) {
+
 		switch req.Method {
 
 		case http.MethodOptions:
@@ -119,22 +119,21 @@ func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService st
 			StartTransactionContext(rfHTTP, &mapParamsService, req)
 
 			// Call list service
-			data, err := (service).Count(nil, nil, nil, &mapParamsService)
+			var err error
+			var data interface{}
 
-			if err != nil {
-				err = FinishTransactionContext(rfHTTP, &mapParamsService)
-			}
+			// Catch panic errors
+			defer func() {
+				if err := recover(); err != nil {
+					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
+				}
+			}()
 
-			if err != nil {
-				// Send error
-				http.Error(res, err.Error(), http.StatusInternalServerError)
-			} else {
-				// send response
-				var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
-				response.Data = data
-				utils.StatusOkInResponseRequest(response)
-				utils.EncodeJsonDataResponseWriter(res, *response)
-			}
+			// Count
+			data, err = (service).Count(nil, nil, nil, &mapParamsService)
+
+			// If has error finish transaction context
+			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
 
 			break
 
@@ -158,14 +157,41 @@ func StartTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string
 }
 
 // FinishTransactionContext : method for finish transaction context
-func FinishTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}) error {
-	var returnError error = nil
+func FinishTransactionContext(err error, rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}) error {
+	var returnError error
+	var transactionError error
 	// Transaction type gorm
 	if rfHTTP.TransactionTypeContext == rfgodataconst.TransactionGorm {
-		transaction, returnError := datautils.GetTransactionInParams(mapParamsService)
-		if returnError == nil {
-			returnError = transaction.FinishTransaction(nil)
+		transaction, transactionError := datautils.GetTransactionInParams(mapParamsService)
+
+		if transactionError != nil {
+			transactionError = transaction.FinishTransaction(err)
 		}
+
+	}
+	if err != nil {
+		returnError = err
+	} else {
+		returnError = transactionError
 	}
 	return returnError
+}
+
+// ForcerFinishRequestRespose : method for force response error request
+func ForcerFinishRequestRespose(res http.ResponseWriter, data interface{}, err error, rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}) {
+
+	err = FinishTransactionContext(err, rfHTTP, mapParamsService)
+
+	var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
+
+	if err != nil {
+		// Send error
+		utils.StatusKoInResponseRequest(response)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	} else {
+		// send response
+		response.Data = data
+		utils.StatusOkInResponseRequest(response)
+		utils.EncodeJsonDataResponseWriter(res, *response)
+	}
 }

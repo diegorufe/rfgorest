@@ -6,7 +6,6 @@ import (
 	"rfgocore/utils/utilsstring"
 	"rfgorest/beans"
 	"rfgorest/constants"
-	"rfgorest/logger"
 )
 
 // EncodeJsonDataResponseWriter : pass json data to response writer
@@ -18,11 +17,11 @@ func EncodeJsonDataResponseWriter(responseWrite http.ResponseWriter, responseReq
 		http.Error(responseWrite, utilsstring.IntToString(int(constants.CodeErrorMarshalResponseWriter)), http.StatusInternalServerError)
 
 	} else {
-		if logger.IsDebugEnabled() {
-			logger.Debug("$$EncodeJsonDataResponseWriter response: " + string(jsonResult))
-		}
+		// if logger.IsDebugEnabled() {
+		// 	logger.Debug("$$EncodeJsonDataResponseWriter response: " + string(jsonResult))
+		// }
+		responseWrite.Header().Set("Content-Type", "application/json; charset=utf-8")
 		responseWrite.WriteHeader(int(responseRequest.Status))
-		responseWrite.Header().Set("Content-Type", "application/json")
 		responseWrite.Write(jsonResult)
 
 	}
@@ -32,4 +31,9 @@ func EncodeJsonDataResponseWriter(responseWrite http.ResponseWriter, responseReq
 // StatusOkInResponseRequest : Method to ser status ok in response
 func StatusOkInResponseRequest(responseRequest *beans.RestRequestResponse) {
 	responseRequest.Status = constants.HttpStatusOk
+}
+
+// StatusKoInResponseRequest : Method to ser status ok in response
+func StatusKoInResponseRequest(responseRequest *beans.RestRequestResponse) {
+	responseRequest.Status = constants.HttpStatusInternalServerError
 }
