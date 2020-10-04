@@ -37,3 +37,10 @@ func StatusOkInResponseRequest(responseRequest *beans.RestRequestResponse) {
 func StatusKoInResponseRequest(responseRequest *beans.RestRequestResponse) {
 	responseRequest.Status = constants.HttpStatusInternalServerError
 }
+
+// EncodeRequestBody : Method for encode request body
+func EncodeRequestBody(req *http.Request) (beans.RestRequestBody, error) {
+	var requestBody beans.RestRequestBody
+	err := json.NewDecoder(req.Body).Decode(&requestBody)
+	return requestBody, err
+}

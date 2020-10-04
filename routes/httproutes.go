@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 	"rfgocore/utils/utilsstring"
-	"rfgodata/beans/query"
 	rfgodataconst "rfgodata/constants"
 	"rfgodata/service"
 	"rfgodata/transactions"
@@ -68,6 +67,7 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 		case http.MethodPost:
 
 			// Serve the resource.
+
 			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
 			var mapParamsService map[string]interface{} = make(map[string]interface{})
 
@@ -85,8 +85,16 @@ func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 				}
 			}()
 
+			// get request body
+			var requestBody beans.RestRequestBody
+			requestBody, err = utils.EncodeRequestBody(req)
+
+			if err != nil {
+				panic(err)
+			}
+
 			// Call list service
-			data, err = (service).List(nil, nil, nil, nil, nil, query.Limit{0, 1}, &mapParamsService)
+			data, err = (service).List(requestBody.Fields, requestBody.Filters, requestBody.Joins, requestBody.Orders, nil, requestBody.Limit, &mapParamsService)
 
 			// If has error finish transaction context
 			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
@@ -164,7 +172,7 @@ func FinishTransactionContext(err error, rfHTTP *rfhttp.RFHttp, mapParamsService
 	if rfHTTP.TransactionTypeContext == rfgodataconst.TransactionGorm {
 		transaction, transactionError := datautils.GetTransactionInParams(mapParamsService)
 
-		if transactionError != nil {
+		if transactionError == nil {
 			transactionError = transaction.FinishTransaction(err)
 		}
 
