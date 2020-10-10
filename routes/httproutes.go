@@ -10,6 +10,7 @@ import (
 	datautils "rfgodata/utils"
 	"rfgorest/beans"
 	"rfgorest/constants"
+	"rfgorest/logger"
 	"rfgorest/rfhttp"
 	"rfgorest/utils"
 
@@ -152,6 +153,50 @@ func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService st
 	})
 }
 
+// HandleCrudLoadNewRoute : Method for handle load new route
+func HandleCrudLoadNewRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	http.HandleFunc(pathRoute+"/loadNew", func(res http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+
+		case http.MethodOptions:
+			break
+
+		case http.MethodPost:
+
+			// Serve the resource.
+
+			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
+			var mapParamsService map[string]interface{} = make(map[string]interface{})
+
+			// Start transaction context
+			StartTransactionContext(rfHTTP, &mapParamsService, req)
+
+			// Call list service
+			var err error
+			var data interface{}
+
+			// Catch panic errors
+			defer func() {
+				if err := recover(); err != nil {
+					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
+				}
+			}()
+
+			// Call load new service
+			data, err = (service).LoadNew(&mapParamsService)
+
+			// If has error finish transaction context
+			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
+
+			break
+
+		default:
+			// Give an error message.
+			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
+		}
+	})
+}
+
 // StartTransactionContext : method for start transaction context
 func StartTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}, req *http.Request) {
 	// Transaction type gorm
@@ -193,6 +238,9 @@ func ForcerFinishRequestRespose(res http.ResponseWriter, data interface{}, err e
 	var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
 
 	if err != nil {
+		// Send error to logger
+		logger.Error(err.Error())
+
 		// Send error
 		utils.StatusKoInResponseRequest(response)
 		http.Error(res, err.Error(), http.StatusInternalServerError)

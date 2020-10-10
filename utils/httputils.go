@@ -17,9 +17,6 @@ func EncodeJsonDataResponseWriter(responseWrite http.ResponseWriter, responseReq
 		http.Error(responseWrite, utilsstring.IntToString(int(constants.CodeErrorMarshalResponseWriter)), http.StatusInternalServerError)
 
 	} else {
-		// if logger.IsDebugEnabled() {
-		// 	logger.Debug("$$EncodeJsonDataResponseWriter response: " + string(jsonResult))
-		// }
 		responseWrite.Header().Set("Content-Type", "application/json; charset=utf-8")
 		responseWrite.WriteHeader(int(responseRequest.Status))
 		responseWrite.Write(jsonResult)
