@@ -197,6 +197,58 @@ func HandleCrudLoadNewRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService 
 	})
 }
 
+// HandleCrudReadRoute : Method for handle load read data
+func HandleCrudReadRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	http.HandleFunc(pathRoute+"/read", func(res http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+
+		case http.MethodOptions:
+			break
+
+		case http.MethodPost:
+
+			// Serve the resource.
+
+			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
+			var mapParamsService map[string]interface{} = make(map[string]interface{})
+
+			// Start transaction context
+			StartTransactionContext(rfHTTP, &mapParamsService, req)
+
+			// Call list service
+			var err error
+			var data interface{}
+
+			// Catch panic errors
+			defer func() {
+				if err := recover(); err != nil {
+					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
+				}
+			}()
+
+			// get request body
+			var requestBody beans.RestRequestBody
+			requestBody, err = utils.EncodeRequestBody(req)
+
+			if err != nil {
+				panic(err)
+			}
+
+			// Call read service
+			data, err = (service).Read(requestBody.Data, &mapParamsService)
+
+			// If has error finish transaction context
+			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
+
+			break
+
+		default:
+			// Give an error message.
+			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
+		}
+	})
+}
+
 // StartTransactionContext : method for start transaction context
 func StartTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}, req *http.Request) {
 	// Transaction type gorm
