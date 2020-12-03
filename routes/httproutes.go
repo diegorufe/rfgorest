@@ -57,6 +57,60 @@ func HandlePostRoute(rfHTTP *rfhttp.RFHttp, route string, handler http.HandlerFu
 	})
 }
 
+// HandlePostRouteWithTransaction : method for handle route with transaction
+func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string, passRequestBodyToFnAction bool,
+	fnActionRoute func(service.IService, *map[string]interface{}, beans.RestRequestBody) (interface{}, error)) {
+	http.HandleFunc(pathRoute, func(res http.ResponseWriter, req *http.Request) {
+		switch req.Method {
+
+		case http.MethodOptions:
+			break
+
+		case http.MethodPost:
+
+			// Serve the resource.
+
+			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
+			var mapParamsService map[string]interface{} = make(map[string]interface{})
+
+			// Start transaction context
+			StartTransactionContext(rfHTTP, &mapParamsService, req)
+
+			var err error
+			var data interface{}
+			var requestBody beans.RestRequestBody
+
+			// If passRequestBodyToFnAction get it
+			if passRequestBodyToFnAction {
+				requestBody, err = utils.EncodeRequestBody(req)
+
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			// Catch panic errors
+			defer func() {
+				if err := recover(); err != nil {
+					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
+				}
+			}()
+
+			// execute function
+			fnActionRoute(service, &mapParamsService, requestBody)
+
+			// If has error finish transaction context
+			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
+
+			break
+
+		default:
+			// Give an error message.
+			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
+		}
+	})
+}
+
 // HandleCrudListRoute : Method for handle list route
 func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	http.HandleFunc(pathRoute+"/list", func(res http.ResponseWriter, req *http.Request) {
