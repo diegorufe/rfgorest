@@ -57,13 +57,24 @@ func HandlePostRoute(rfHTTP *rfhttp.RFHttp, route string, handler http.HandlerFu
 	})
 }
 
+func setupCorsResponse(res *http.ResponseWriter, req *http.Request) {
+	(*res).Header().Set("Access-Control-Allow-Origin", "*")
+	(*res).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*res).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 // HandlePostRouteWithTransaction : method for handle route with transaction
 func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string, passRequestBodyToFnAction bool,
 	fnActionRoute func(service.IService, *map[string]interface{}, beans.RestRequestBody) (interface{}, error)) {
+
 	http.HandleFunc(pathRoute, func(res http.ResponseWriter, req *http.Request) {
+
+		setupCorsResponse(&res, req)
+
 		switch req.Method {
 
 		case http.MethodOptions:
+
 			break
 
 		case http.MethodPost:
@@ -97,7 +108,7 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 			}()
 
 			// execute function
-			fnActionRoute(service, &mapParamsService, requestBody)
+			data, err = fnActionRoute(service, &mapParamsService, requestBody)
 
 			// If has error finish transaction context
 			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
@@ -107,103 +118,22 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 		default:
 			// Give an error message.
 			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
+			break
 		}
 	})
 }
 
 // HandleCrudListRoute : Method for handle list route
 func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
-	http.HandleFunc(pathRoute+"/list", func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodPost:
-
-			// Serve the resource.
-
-			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
-			var mapParamsService map[string]interface{} = make(map[string]interface{})
-
-			// Start transaction context
-			StartTransactionContext(rfHTTP, &mapParamsService, req)
-
-			// Call list service
-			var err error
-			var data interface{}
-
-			// Catch panic errors
-			defer func() {
-				if err := recover(); err != nil {
-					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
-				}
-			}()
-
-			// get request body
-			var requestBody beans.RestRequestBody
-			requestBody, err = utils.EncodeRequestBody(req)
-
-			if err != nil {
-				panic(err)
-			}
-
-			// Call list service
-			data, err = (service).List(requestBody.Fields, requestBody.Filters, requestBody.Joins, requestBody.Orders, nil, requestBody.Limit, &mapParamsService)
-
-			// If has error finish transaction context
-			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
-
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/list", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+		return (service).List(requestBody.Fields, requestBody.Filters, requestBody.Joins, requestBody.Orders, nil, requestBody.Limit, mapParamsService)
 	})
 }
 
 // HandleCrudCountRoute : Method for handle count route
 func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
-	http.HandleFunc(pathRoute+"/count", func(res http.ResponseWriter, req *http.Request) {
-
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodPost:
-
-			// Serve the resource.
-			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
-			var mapParamsService map[string]interface{} = make(map[string]interface{})
-
-			// Start transaction context
-			StartTransactionContext(rfHTTP, &mapParamsService, req)
-
-			// Call list service
-			var err error
-			var data interface{}
-
-			// Catch panic errors
-			defer func() {
-				if err := recover(); err != nil {
-					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
-				}
-			}()
-
-			// Count
-			data, err = (service).Count(nil, nil, nil, &mapParamsService)
-
-			// If has error finish transaction context
-			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
-
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/count", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+		return (service).Count(requestBody.Filters, requestBody.Joins, nil, mapParamsService)
 	})
 }
 
