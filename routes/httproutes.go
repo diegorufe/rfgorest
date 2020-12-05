@@ -57,19 +57,13 @@ func HandlePostRoute(rfHTTP *rfhttp.RFHttp, route string, handler http.HandlerFu
 	})
 }
 
-func setupCorsResponse(res *http.ResponseWriter, req *http.Request) {
-	(*res).Header().Set("Access-Control-Allow-Origin", "*")
-	(*res).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*res).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
 // HandlePostRouteWithTransaction : method for handle route with transaction
 func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string, passRequestBodyToFnAction bool,
 	fnActionRoute func(service.IService, *map[string]interface{}, beans.RestRequestBody) (interface{}, error)) {
 
 	http.HandleFunc(pathRoute, func(res http.ResponseWriter, req *http.Request) {
 
-		setupCorsResponse(&res, req)
+		utils.SetupCorsResponseOriginAll(&res, req)
 
 		switch req.Method {
 

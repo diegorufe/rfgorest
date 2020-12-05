@@ -41,3 +41,10 @@ func EncodeRequestBody(req *http.Request) (beans.RestRequestBody, error) {
 	err := json.NewDecoder(req.Body).Decode(&requestBody)
 	return requestBody, err
 }
+
+// SetupCorsResponseOriginAll : method for set cors reponse origin all
+func SetupCorsResponseOriginAll(res *http.ResponseWriter, req *http.Request) {
+	(*res).Header().Set("Access-Control-Allow-Origin", "*")
+	(*res).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*res).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
