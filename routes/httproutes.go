@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"rfgocore/utils/utilsstring"
 	rfgodataconst "rfgodata/constants"
@@ -63,6 +64,7 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 
 	http.HandleFunc(pathRoute, func(res http.ResponseWriter, req *http.Request) {
 
+		// Setup cors
 		utils.SetupCorsResponseOriginAll(&res, req)
 
 		switch req.Method {
@@ -74,7 +76,6 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 		case http.MethodPost:
 
 			// Serve the resource.
-
 			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
 			var mapParamsService map[string]interface{} = make(map[string]interface{})
 
@@ -87,6 +88,7 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 
 			// If passRequestBodyToFnAction get it
 			if passRequestBodyToFnAction {
+				// Get request body
 				requestBody, err = utils.EncodeRequestBody(req)
 
 				if err != nil {
@@ -97,6 +99,7 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 			// Catch panic errors
 			defer func() {
 				if err := recover(); err != nil {
+					// Finish request response on error
 					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
 				}
 			}()
@@ -133,97 +136,15 @@ func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService st
 
 // HandleCrudLoadNewRoute : Method for handle load new route
 func HandleCrudLoadNewRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
-	http.HandleFunc(pathRoute+"/loadNew", func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodPost:
-
-			// Serve the resource.
-
-			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
-			var mapParamsService map[string]interface{} = make(map[string]interface{})
-
-			// Start transaction context
-			StartTransactionContext(rfHTTP, &mapParamsService, req)
-
-			// Call list service
-			var err error
-			var data interface{}
-
-			// Catch panic errors
-			defer func() {
-				if err := recover(); err != nil {
-					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
-				}
-			}()
-
-			// Call load new service
-			data, err = (service).LoadNew(&mapParamsService)
-
-			// If has error finish transaction context
-			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
-
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/loadNew", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+		return (service).LoadNew(mapParamsService)
 	})
 }
 
 // HandleCrudReadRoute : Method for handle load read data
 func HandleCrudReadRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
-	http.HandleFunc(pathRoute+"/read", func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-
-		case http.MethodOptions:
-			break
-
-		case http.MethodPost:
-
-			// Serve the resource.
-
-			var service service.IService = rfHTTP.GetService(keyService).(service.IService)
-			var mapParamsService map[string]interface{} = make(map[string]interface{})
-
-			// Start transaction context
-			StartTransactionContext(rfHTTP, &mapParamsService, req)
-
-			// Call list service
-			var err error
-			var data interface{}
-
-			// Catch panic errors
-			defer func() {
-				if err := recover(); err != nil {
-					ForcerFinishRequestRespose(res, data, err.(error), rfHTTP, &mapParamsService)
-				}
-			}()
-
-			// get request body
-			var requestBody beans.RestRequestBody
-			requestBody, err = utils.EncodeRequestBody(req)
-
-			if err != nil {
-				panic(err)
-			}
-
-			// Call read service
-			data, err = (service).Read(requestBody.Data, &mapParamsService)
-
-			// If has error finish transaction context
-			defer ForcerFinishRequestRespose(res, data, err, rfHTTP, &mapParamsService)
-
-			break
-
-		default:
-			// Give an error message.
-			http.Error(res, utilsstring.IntToString(int(constants.CodeErrorMethodRequest)), http.StatusInternalServerError)
-		}
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/read", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+		return (service).Read(requestBody.Data, mapParamsService)
 	})
 }
 
@@ -272,6 +193,7 @@ func ForcerFinishRequestRespose(res http.ResponseWriter, data interface{}, err e
 		logger.Error(err.Error())
 
 		// Send error
+		fmt.Println(err.Error())
 		utils.StatusKoInResponseRequest(response)
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	} else {
