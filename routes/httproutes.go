@@ -179,11 +179,11 @@ func HandleCrudEditRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 
 		if err == nil {
 
-			entityStruct := reflect.New(service.GetTypeModel()).Interface()
-			err = json.Unmarshal(jsonBody, &entityStruct)
+			modelStruct := reflect.New(service.GetTypeModel()).Interface()
+			err = json.Unmarshal(jsonBody, &modelStruct)
 
 			if err == nil {
-				responseService = (service).Edit(entityStruct, mapParamsService)
+				responseService = (service).Edit(modelStruct, mapParamsService)
 			} else {
 				responseService.ResponseError = err
 			}
