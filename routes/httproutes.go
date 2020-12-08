@@ -3,13 +3,14 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"rfgocore/logger"
 	"rfgocore/utils/utilsstring"
+	databcore "rfgodata/beans/core"
 	rfgodataconst "rfgodata/constants"
 	"rfgodata/service"
 	"rfgodata/transactions"
 	transactiongorm "rfgodata/transactions/gorm"
 	datautils "rfgodata/utils"
-	"rfgore/logger"
 	"rfgorest/beans"
 	"rfgorest/constants"
 	"rfgorest/rfhttp"
@@ -120,31 +121,43 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 	})
 }
 
+// HandleCrudBrowserRoute : Method for handle browse route
+func HandleCrudBrowserRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/browser", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+		responseService := (service).Browser(requestBody.Data.(databcore.RequestBrowser), mapParamsService)
+		return responseService.Data, responseService.ResponseError
+	})
+}
+
 // HandleCrudListRoute : Method for handle list route
 func HandleCrudListRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/list", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
-		return (service).List(requestBody.Fields, requestBody.Filters, requestBody.Joins, requestBody.Orders, nil, requestBody.Limit, mapParamsService)
+		responseService := (service).List(requestBody.Fields, requestBody.Filters, requestBody.Joins, requestBody.Orders, nil, requestBody.Limit, mapParamsService)
+		return responseService.Data, responseService.ResponseError
 	})
 }
 
 // HandleCrudCountRoute : Method for handle count route
 func HandleCrudCountRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/count", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
-		return (service).Count(requestBody.Filters, requestBody.Joins, nil, mapParamsService)
+		responseService := (service).Count(requestBody.Filters, requestBody.Joins, nil, mapParamsService)
+		return responseService.Data, responseService.ResponseError
 	})
 }
 
 // HandleCrudLoadNewRoute : Method for handle load new route
 func HandleCrudLoadNewRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/loadNew", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
-		return (service).LoadNew(mapParamsService)
+		responseService := (service).LoadNew(mapParamsService)
+		return responseService.Data, responseService.ResponseError
 	})
 }
 
 // HandleCrudReadRoute : Method for handle load read data
 func HandleCrudReadRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/read", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
-		return (service).Read(requestBody.Data, mapParamsService)
+		responseService := (service).Read(requestBody.Data, mapParamsService)
+		return responseService.Data, responseService.ResponseError
 	})
 }
 
