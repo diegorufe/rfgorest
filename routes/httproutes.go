@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"rfgocore/logger"
 	"rfgocore/utils/utilsstring"
 	databcore "rfgodata/beans/core"
@@ -124,7 +126,14 @@ func HandlePostRouteWithTransaction(rfHTTP *rfhttp.RFHttp, pathRoute string, key
 // HandleCrudBrowserRoute : Method for handle browse route
 func HandleCrudBrowserRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/browser", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
-		responseService := (service).Browser(requestBody.Data.(databcore.RequestBrowser), mapParamsService)
+		var requestBrowser databcore.RequestBrowser
+		jsonbody, err := json.Marshal(requestBody.Data.(map[string]interface{}))
+
+		if err == nil {
+			json.Unmarshal(jsonbody, &requestBrowser)
+		}
+
+		responseService := (service).Browser(requestBrowser, mapParamsService)
 		return responseService.Data, responseService.ResponseError
 	})
 }
@@ -157,6 +166,31 @@ func HandleCrudLoadNewRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService 
 func HandleCrudReadRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/read", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
 		responseService := (service).Read(requestBody.Data, mapParamsService)
+		return responseService.Data, responseService.ResponseError
+	})
+}
+
+// HandleCrudEditRoute : Method for handle load read data
+func HandleCrudEditRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/edit", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+
+		jsonBody, err := json.Marshal(requestBody.Data.(map[string]interface{}))
+		var responseService databcore.ResponseService
+
+		if err == nil {
+
+			entityStruct := reflect.New(service.GetTypeModel()).Interface()
+			err = json.Unmarshal(jsonBody, &entityStruct)
+
+			if err == nil {
+				responseService = (service).Edit(entityStruct, mapParamsService)
+			} else {
+				responseService.ResponseError = err
+			}
+		} else {
+			responseService.ResponseError = err
+		}
+
 		return responseService.Data, responseService.ResponseError
 	})
 }
