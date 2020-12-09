@@ -195,6 +195,68 @@ func HandleCrudEditRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService str
 	})
 }
 
+// HandleCrudAddRoute : Method for handle load add data
+func HandleCrudAddRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/add", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+
+		jsonBody, err := json.Marshal(requestBody.Data.(map[string]interface{}))
+		var responseService databcore.ResponseService
+
+		if err == nil {
+
+			modelStruct := reflect.New(service.GetTypeModel()).Interface()
+			err = json.Unmarshal(jsonBody, &modelStruct)
+
+			if err == nil {
+				responseService = (service).Add(modelStruct, mapParamsService)
+			} else {
+				responseService.ResponseError = err
+			}
+		} else {
+			responseService.ResponseError = err
+		}
+
+		return responseService.Data, responseService.ResponseError
+	})
+}
+
+// HandleCrudDeleteRoute : Method for handle load add data
+func HandleCrudDeleteRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/delete", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
+
+		jsonBody, err := json.Marshal(requestBody.Data.(map[string]interface{}))
+		var responseService databcore.ResponseService
+
+		if err == nil {
+
+			modelStruct := reflect.New(service.GetTypeModel()).Interface()
+			err = json.Unmarshal(jsonBody, &modelStruct)
+
+			if err == nil {
+				responseService = (service).Delete(modelStruct, mapParamsService)
+			} else {
+				responseService.ResponseError = err
+			}
+		} else {
+			responseService.ResponseError = err
+		}
+
+		return responseService.Data, responseService.ResponseError
+	})
+}
+
+// HandleCrudRoutes : Method for handle all crud routes. Count, List, Browser, Read, Edit, Add, Delete, LoadNew
+func HandleCrudRoutes(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
+	HandleCrudBrowserRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudListRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudCountRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudAddRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudDeleteRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudEditRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudLoadNewRoute(rfHTTP, pathRoute, keyService)
+	HandleCrudReadRoute(rfHTTP, pathRoute, keyService)
+}
+
 // StartTransactionContext : method for start transaction context
 func StartTransactionContext(rfHTTP *rfhttp.RFHttp, mapParamsService *map[string]interface{}, req *http.Request) {
 	// Transaction type gorm

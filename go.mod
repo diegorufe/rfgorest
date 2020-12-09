@@ -1,6 +1,6 @@
 module rfgorest
 
-go 1.13
+go 1.15
 
 replace rfgocore => E:/trabajo/repos/go/rfgocore
 
