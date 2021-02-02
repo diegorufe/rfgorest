@@ -220,7 +220,7 @@ func HandleCrudAddRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService stri
 	})
 }
 
-// HandleCrudDeleteRoute : Method for handle load add data
+// HandleCrudDeleteRoute : Method for handle load delete data
 func HandleCrudDeleteRoute(rfHTTP *rfhttp.RFHttp, pathRoute string, keyService string) {
 	HandlePostRouteWithTransaction(rfHTTP, pathRoute+"/delete", keyService, true, func(service service.IService, mapParamsService *map[string]interface{}, requestBody beans.RestRequestBody) (interface{}, error) {
 
@@ -295,17 +295,24 @@ func ForcerFinishRequestRespose(res http.ResponseWriter, data interface{}, err e
 
 	err = FinishTransactionContext(err, rfHTTP, mapParamsService)
 
-	var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
-
 	if err != nil {
+		var responseError *beans.ResponseError = beans.NewResponseError()
 		// Send error to logger
 		logger.Error(err.Error())
 
 		// Send error
 		fmt.Println(err.Error())
-		utils.StatusKoInResponseRequest(response)
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+		responseError.Message = err.Error()
+		jsonResult, errorJSON := json.Marshal(responseError)
+
+		if errorJSON != nil {
+			http.Error(res, errorJSON.Error(), http.StatusInternalServerError)
+		} else {
+			http.Error(res, string(jsonResult), http.StatusInternalServerError)
+		}
+
 	} else {
+		var response *beans.RestRequestResponse = beans.NewRestRequestResponse()
 		// send response
 		response.Data = data
 		utils.StatusOkInResponseRequest(response)

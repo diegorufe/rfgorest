@@ -10,6 +10,8 @@ type RestRequestResponse struct {
 	Status          constants.HttpStatusType        `json:"status"`
 	MessageResponse string                          `json:"messageResponse"`
 	CodeError       constants.CodeErrorResponseType `json:"codeError"`
+	Token           string                          `json:"token"`
+	MapParams       map[string]interface{}          `json:"MapParams"`
 }
 
 // NewRestRequestResponse : function to create RestRequestResponse
