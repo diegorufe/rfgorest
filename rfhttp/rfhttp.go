@@ -21,6 +21,10 @@ type RFHttp struct {
 func NewRFHttp() *RFHttp {
 	var rfHTTP *RFHttp = new(RFHttp)
 
+	rfHTTP.Properties.AppName = "RFHttp"
+	rfHTTP.Properties.Host = "localhost"
+	rfHTTP.Properties.Port = 7000
+
 	// Init default properties
 	initDefaultRFHttp(rfHTTP)
 
