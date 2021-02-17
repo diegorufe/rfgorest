@@ -1,7 +1,7 @@
 package beans
 
-// RFTcpproperties properties tpc server
-type RFTcpproperties struct {
+// RFTcpProperties properties tpc server
+type RFTcpProperties struct {
 	Host      string
 	Port      int
 	MapParams map[string]interface{}

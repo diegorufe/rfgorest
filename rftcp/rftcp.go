@@ -13,7 +13,7 @@ import (
 
 // RFTcp : struct for store data tcp
 type RFTcp struct {
-	Properties beans.RFTcpproperties
+	Properties beans.RFTcpProperties
 
 	// Function for chec secure access
 	FunctionCheckSecureAccess func(connection net.Conn, rftcp *RFTcp) (bool, error)
@@ -41,7 +41,9 @@ func (rftcp *RFTcp) Listen() {
 	connection, err := net.Listen("tcp4", hostAndPort)
 
 	if err != nil {
-		fmt.Println(err)
+		if logger.IsErrorEnabled() {
+			logger.Error(err)
+		}
 		return
 	}
 
@@ -51,7 +53,9 @@ func (rftcp *RFTcp) Listen() {
 	for {
 		clientConnection, err := connection.Accept()
 		if err != nil {
-			fmt.Println(err)
+			if logger.IsErrorEnabled() {
+				logger.Error(err)
+			}
 			return
 		}
 
