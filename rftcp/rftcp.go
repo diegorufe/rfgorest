@@ -4,28 +4,88 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"rfgocore/logger"
 	"rfgocore/utils/utilsbytes"
 	"rfgocore/utils/utilsstring"
+	"rfgorest/rftcp/beans"
 	"rfgorest/rftcp/constants"
 )
 
 // RFTcp : struct for store data tcp
 type RFTcp struct {
+	Properties beans.RFTcpproperties
+
+	// Function for chec secure access
+	FunctionCheckSecureAccess func(connection net.Conn, rftcp *RFTcp) (bool, error)
+
+	// Function for process data recived
+	FunctionProcessDataReceived func(connection net.Conn, rftcp *RFTcp, parsedNetData string) error
 }
 
 // NewRFTcp : method for instance new RFTcp
 func NewRFTcp() *RFTcp {
 	var rftcp *RFTcp = new(RFTcp)
 
+	// Init default port
+	rftcp.Properties.Port = 5000
+
 	return rftcp
 }
 
-// handleConnection method for handle conecction and realice busines logics
-func handleConnection(connection net.Conn, rftcp *RFTcp) {
+// Listen : method for start server on port
+func (rftcp *RFTcp) Listen() {
+	var hostAndPort string = rftcp.Properties.Host +
+		":" +
+		utilsstring.IntToString(rftcp.Properties.Port)
 
-	fmt.Printf("Serving %s\n", connection.RemoteAddr().String())
+	connection, err := net.Listen("tcp4", hostAndPort)
 
-	// TODO check security connection for RemoteAddr. If not accept connexion send error
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Close connection on error
+	defer connection.Close()
+
+	for {
+		clientConnection, err := connection.Accept()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// Handle connection client to go rutine (thread)
+		go handleClientConnection(clientConnection, rftcp)
+	}
+}
+
+// handleClientConnection method for handle conecction and realice busines logics
+func handleClientConnection(connection net.Conn, rftcp *RFTcp) {
+
+	if logger.IsDebugEnabled() {
+		logger.Debug(fmt.Sprintf("Serving %s\n", connection.RemoteAddr().String()))
+	}
+
+	// Check security connection
+	if rftcp.FunctionCheckSecureAccess != nil {
+		secured, err := rftcp.FunctionCheckSecureAccess(connection, rftcp)
+
+		if !secured || err != nil {
+
+			if logger.IsErrorEnabled() {
+				logger.Error(fmt.Sprintf("Connection not secured"))
+			}
+
+			if err != nil {
+				if logger.IsErrorEnabled() {
+					logger.Error(err)
+				}
+			}
+
+			return
+		}
+	}
 
 loopHandleConnection:
 	for {
@@ -34,7 +94,9 @@ loopHandleConnection:
 
 		// If have error break connection
 		if err != nil {
-			fmt.Println(err)
+			if logger.IsErrorEnabled() {
+				logger.Error(err)
+			}
 			break loopHandleConnection
 		}
 
@@ -45,7 +107,9 @@ loopHandleConnection:
 		if err != nil || processCommandResult == constants.StopCommand {
 			// Print error
 			if err != nil {
-				fmt.Println(err)
+				if logger.IsErrorEnabled() {
+					logger.Error(err)
+				}
 			}
 			// Break loop connection
 			break loopHandleConnection
@@ -62,17 +126,29 @@ func proccessCommand(netData string, connection net.Conn, rftcp *RFTcp) (string,
 
 	parsedNetData := utilsstring.TrimAllSpace(string(netData))
 
+	var err error = nil
+
 	switch parsedNetData {
+	case constants.KeepAliveCommand:
+		sendKeepAlive(connection)
+		break
+
 	default:
-		// TODO check send keep alive
-		sendKeepAlive(connection, rftcp)
+		if rftcp.FunctionProcessDataReceived != nil {
+			err = rftcp.FunctionProcessDataReceived(connection, rftcp, parsedNetData)
+		}
 		break
 	}
 
-	return parsedNetData, nil
+	return parsedNetData, err
+}
+
+// SendCommandToClient method for send command to client
+func SendCommandToClient(connection net.Conn, command string) {
+	connection.Write([]byte(command))
 }
 
 // sendKeepAlive method for send keep alive command
-func sendKeepAlive(connection net.Conn, rftcp *RFTcp) {
-	connection.Write([]byte(string(constants.KeepAliveCommand)))
+func sendKeepAlive(connection net.Conn) {
+	SendCommandToClient(connection, string(constants.KeepAliveCommand))
 }

@@ -1,7 +1,7 @@
 package beans
 
 import (
-	"rfgorest/constants"
+	"rfgorest/rfhttp/constants"
 )
 
 // RestRequestResponse : struct for store response data

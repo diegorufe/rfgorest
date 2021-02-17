@@ -1,6 +1,6 @@
 package beans
 
-import "rfgorest/constants"
+import "rfgorest/rfhttp/constants"
 
 // ResponseError for send error when request failt
 type ResponseError struct {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"rfgocore/utils/utilsstring"
-	"rfgorest/constants"
 	"rfgorest/rfhttp/beans"
+	"rfgorest/rfhttp/constants"
 )
 
 // EncodeJsonDataResponseWriter : pass json data to response writer
