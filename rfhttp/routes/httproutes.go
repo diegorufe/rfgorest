@@ -13,9 +13,9 @@ import (
 	"rfgodata/transactions"
 	transactiongorm "rfgodata/transactions/gorm"
 	datautils "rfgodata/utils"
-	"rfgorest/beans"
 	"rfgorest/constants"
 	"rfgorest/rfhttp"
+	"rfgorest/rfhttp/beans"
 	"rfgorest/utils"
 
 	"gorm.io/gorm"
