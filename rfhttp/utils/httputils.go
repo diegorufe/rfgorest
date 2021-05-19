@@ -38,7 +38,12 @@ func StatusKoInResponseRequest(responseRequest *beans.RestRequestResponse) {
 // EncodeRequestBody : Method for encode request body
 func EncodeRequestBody(req *http.Request) (beans.RestRequestBody, error) {
 	var requestBody beans.RestRequestBody
-	err := json.NewDecoder(req.Body).Decode(&requestBody)
+	var err error = nil
+
+	if req.Body != http.NoBody {
+		err = json.NewDecoder(req.Body).Decode(&requestBody)
+	}
+
 	return requestBody, err
 }
 
