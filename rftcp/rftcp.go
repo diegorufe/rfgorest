@@ -87,6 +87,8 @@ func handleClientConnection(connection net.Conn, rftcp *RFTcp) {
 				}
 			}
 
+			connection.Close()
+
 			return
 		}
 	}
