@@ -123,6 +123,10 @@ loopHandleConnection:
 
 	}
 
+	if logger.IsDebugEnabled() {
+		logger.Debug(fmt.Sprintf("Close %s\n", connection.RemoteAddr().String()))
+	}
+
 	// Close conection
 	connection.Close()
 }
@@ -134,6 +138,10 @@ func proccessCommand(netData string, connection net.Conn, rftcp *RFTcp) (string,
 
 	var err error = nil
 
+	if logger.IsDebugEnabled() {
+		logger.Debug(fmt.Sprintf("Data command to process TCP %s. Data trim %s | Data without trim %s\n", connection.RemoteAddr().String(), parsedNetData, netData))
+	}
+
 	switch parsedNetData {
 	case constants.KeepAliveCommand:
 		sendKeepAlive(connection)
@@ -141,7 +149,7 @@ func proccessCommand(netData string, connection net.Conn, rftcp *RFTcp) (string,
 
 	default:
 		if rftcp.FunctionProcessDataReceived != nil {
-			err = rftcp.FunctionProcessDataReceived(connection, rftcp, parsedNetData)
+			err = rftcp.FunctionProcessDataReceived(connection, rftcp, netData)
 		}
 		break
 	}
