@@ -1,7 +1,9 @@
 package rfhttp
 
 import (
+	"fmt"
 	"net/http"
+	"rfgocore/logger"
 	"rfgocore/utils/utilsstring"
 	rfgodataconst "rfgodata/constants"
 	"rfgorest/rfhttp/beans"
@@ -52,13 +54,17 @@ func (rfHTTP *RFHttp) GetService(keyService string) interface{} {
 }
 
 // Listen : method for start server on host and port
-func (rfHTTP *RFHttp) Listen() {
+func (rfHTTP *RFHttp) Listen() error {
 
 	var hostAndPort string = rfHTTP.Properties.Host +
 		":" +
 		utilsstring.IntToString(rfHTTP.Properties.Port)
 
-	http.ListenAndServe(hostAndPort, nil)
+	if logger.IsInfoEnabled() {
+		logger.Info(fmt.Sprintf("Serving %s\n", hostAndPort))
+	}
+
+	return http.ListenAndServe(hostAndPort, nil)
 }
 
 // initDefaultRFHttp: method for initialice default data

@@ -33,7 +33,7 @@ func NewRFTcp() *RFTcp {
 }
 
 // Listen : method for start server on port
-func (rftcp *RFTcp) Listen() {
+func (rftcp *RFTcp) Listen() error {
 	var hostAndPort string = rftcp.Properties.Host +
 		":" +
 		utilsstring.IntToString(rftcp.Properties.Port)
@@ -44,7 +44,7 @@ func (rftcp *RFTcp) Listen() {
 		if logger.IsErrorEnabled() {
 			logger.Error(err)
 		}
-		return
+		return err
 	}
 
 	// Close connection on error
@@ -56,12 +56,13 @@ func (rftcp *RFTcp) Listen() {
 			if logger.IsErrorEnabled() {
 				logger.Error(err)
 			}
-			return
+			return err
 		}
 
 		// Handle connection client to go rutine (thread)
 		go handleClientConnection(clientConnection, rftcp)
 	}
+
 }
 
 // handleClientConnection method for handle conecction and realice busines logics

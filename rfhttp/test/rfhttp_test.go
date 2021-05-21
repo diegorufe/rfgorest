@@ -13,7 +13,7 @@ func TestRFHttpContextName(t *testing.T) {
 	var desireResult string = "TEST"
 
 	if !reflect.DeepEqual(data.AppName(), desireResult) {
-		t.Errorf("TestRFHttpContextName %s == %s", data, desireResult)
+		t.Errorf("TestRFHttpContextName %s == %s", data.AppName(), desireResult)
 	}
 
 }
